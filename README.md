@@ -69,4 +69,3 @@ The overview now uses reference-style anatomy imagery, clickable overdue and rev
 The body model requires WebGL. A visible message explains unavailable WebGL or a failed model load. The care controls remain usable. Asset sources, licenses, and the DNA generation prompt are recorded in assets/ASSETS.md. Artwork credits are linked below the model.
 
 Visual-update verification: the model rendered locally, front/back controls worked by mouse and keyboard, quick-filter cards returned the correct patients, the review dialog and secondary task actions remained accessible, and the overview and patient pages had no horizontal overflow at a 390-pixel test viewport. Nine logic tests passed again. No saved patient records were changed during these visual checks.
-

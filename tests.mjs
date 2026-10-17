@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {seed,due,progress,money,half,NOW,validStore} from './model.js';
+test('seed demonstrates the three dashboard cases',()=>{const d=seed();assert.equal(progress(d.plans[0].tasks).overdue,1);assert.equal(progress(d.plans[1].tasks).overdue,0);assert.equal(progress(d.plans[2].tasks).overdue,1);assert.equal(d.plans[0].tasks[1].updates[0].status,'unreviewed');});
+test('completion removes overdue and correction restores it',()=>{const t=seed().plans[0].tasks[1];assert.equal(due(t),'Overdue');t.completion=NOW;assert.equal(due(t),'Recorded complete');assert.equal(t.updates.length,1);t.completion=null;assert.equal(due(t),'Overdue');});
+test('cancellation excludes task from progress denominator and overdue',()=>{const t=seed().plans[0].tasks[1];t.cancelled='Replaced';assert.deepEqual(progress([t]),{total:0,done:0,overdue:0});assert.equal(t.updates.length,1);});
+test('unscheduled and empty plans have no invented deadlines',()=>{assert.equal(due({schedule:null}),'Unscheduled');assert.deepEqual(progress([]),{total:0,done:0,overdue:0});});
+test('review status is independent of completion and due state',()=>{const t=seed().plans[0].tasks[1];t.updates[0].status='resolved';assert.equal(due(t),'Overdue');assert.equal(t.completion,null);});
+test('draft copies do not mutate approved plans',()=>{const d=seed(),draft=structuredClone(d.plans[0]);draft.tasks[0].title='Draft title';assert.notEqual(draft.tasks[0].title,d.plans[0].tasks[0].title);});
+test('INR parsing rejects malformed, negative, nonfinite and excessive amounts',()=>{for(const s of ['','0','-1','NaN','Infinity','1e3','1.234','1.','1,000','100000001'])assert.equal(money(s),null,s);assert.equal(money('0.01'),1);assert.equal(money('123.45'),12345);assert.equal(money('100'),10000);});
+test('50 percent illustration rounds half paise up',()=>{assert.equal(half(money('0.01')),1);assert.equal(half(money('123.45')),6173);assert.equal(half(money('100')),5000);});
+test('schema validation catches malformed records and accepts a storage round trip',()=>{assert.ok(validStore(JSON.parse(JSON.stringify(seed()))));for(const x of [null,{}, {schemaVersion:2}])assert.equal(validStore(x),false);const d=seed();d.plans[0].tasks[0].schedule='bad';assert.equal(validStore(d),false);});
