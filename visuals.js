@@ -6,7 +6,7 @@ export function anatomyScene({compact=false}={}) {
     <span class="body-tag tag-two"><i></i>Patient updates</span>
     <span class="body-tag tag-three"><i></i>Doctor review</span>
     <div class="anatomy-base" aria-hidden="true"></div>
-    <div class="body-controls" aria-label="Anatomy illustration view"><button type="button" data-body-view="front" aria-pressed="true" disabled>Front</button><button type="button" data-body-view="back" aria-pressed="false" disabled>Back</button></div>
+    <div class="body-rotate-hint" aria-hidden="true">Drag to rotate 360°</div>
     <figcaption>Illustration only · Not patient anatomy<br><a href="/assets/ANATOMY-CREDITS.html" target="_blank" rel="noopener" aria-label="Anatomy artwork credits, opens a new tab">Artwork credits ↗</a></figcaption>
   </figure>`;
 }
@@ -16,4 +16,5 @@ export function dnaCard({done=0,total=0}={}) {
 export function dnaReview() {
   return `<figure class="dna-review"><div class="eyebrow">A shared view of care</div><img src="/assets/dna-helix.png" alt="Decorative silver DNA double helix" width="1024" height="1536"><div class="dna-review-label dr-one"><span class="dot"></span>Approve the plan</div><div class="dna-review-label dr-two"><span class="dot"></span>Share progress</div><div class="dna-review-label dr-three"><span class="dot"></span>Review next steps</div><figcaption>Decorative illustration · No genetic analysis</figcaption></figure>`;
 }
+
 
