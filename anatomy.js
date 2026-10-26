@@ -17,8 +17,13 @@ export async function mountAnatomy(){
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=1.25;
-  renderer.domElement.setAttribute('role','img');
-  renderer.domElement.setAttribute('aria-label','Front view of a 3D muscular anatomy teaching model');
+  renderer.domElement.setAttribute('role','slider');
+  renderer.domElement.tabIndex=0;
+  renderer.domElement.setAttribute('aria-valuemin','0');
+  renderer.domElement.setAttribute('aria-valuemax','359');
+  renderer.domElement.setAttribute('aria-valuenow','0');
+  renderer.domElement.setAttribute('aria-valuetext','0 degrees');
+  renderer.domElement.setAttribute('aria-label','Rotate muscular anatomy model. Drag left or right, or use the arrow keys.');
   holder.prepend(renderer.domElement);
   const scene=new THREE.Scene();
   scene.add(new THREE.HemisphereLight(0xffffff,0x8490a3,2.3));
@@ -43,10 +48,21 @@ export async function mountAnatomy(){
    const draw=()=>{if(disposed||!holder.isConnected)return;const w=holder.clientWidth,h=holder.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);const viewHeight=Math.max(size.y*1.08,size.x/(w/h)*1.12);camera.top=viewHeight/2;camera.bottom=-viewHeight/2;camera.left=-viewHeight*w/h/2;camera.right=viewHeight*w/h/2;camera.updateProjectionMatrix();renderer.render(scene,camera);};
    observer=new ResizeObserver(draw);observer.observe(holder);draw();
    status.hidden=true;
-   holder.closest('.anatomy-scene').querySelectorAll('[data-body-view]').forEach(button=>{
-    button.disabled=false;
-    button.onclick=()=>{pivot.rotation.y=button.dataset.bodyView==='back'?Math.PI:0;renderer.domElement.setAttribute('aria-label',`${button.dataset.bodyView==='back'?'Back':'Front'} view of a 3D muscular anatomy teaching model`);holder.closest('.anatomy-scene').querySelectorAll('[data-body-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));draw();};
-   });
+   const canvas=renderer.domElement;
+   let pointer=null,lastX=0;
+   const rotate=delta=>{
+    pivot.rotation.y=THREE.MathUtils.euclideanModulo(pivot.rotation.y+delta,Math.PI*2);
+    const degrees=Math.round(THREE.MathUtils.radToDeg(pivot.rotation.y))%360;
+    canvas.setAttribute('aria-valuenow',String(degrees));
+    canvas.setAttribute('aria-valuetext',degrees+' degrees');
+    draw();
+   };
+   canvas.onpointerdown=e=>{if(e.button!==0||pointer!==null)return;pointer=e.pointerId;lastX=e.clientX;canvas.setPointerCapture(pointer);canvas.classList.add('dragging');canvas.focus({preventScroll:true});};
+   canvas.onpointermove=e=>{if(e.pointerId!==pointer)return;rotate((e.clientX-lastX)/Math.max(holder.clientWidth,1)*Math.PI*2);lastX=e.clientX;};
+   const release=e=>{if(e.pointerId!==pointer)return;if(canvas.hasPointerCapture(pointer))canvas.releasePointerCapture(pointer);pointer=null;canvas.classList.remove('dragging');};
+   canvas.onpointerup=release;canvas.onpointercancel=release;canvas.onlostpointercapture=release;
+   canvas.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();rotate(e.key==='Home'?-pivot.rotation.y:(e.key==='ArrowLeft'?-1:1)*Math.PI/18);};
   }catch{if(!disposed){status.hidden=false;status.textContent='The anatomy illustration could not load. Refresh to try again. Your care tasks remain available.';}}
  }
 }
+
